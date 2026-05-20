@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Retirement Planning Model</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #ffffff;
+    --bg2: #f7f8fa;
+    --bg3: #f0f2f5;
+    --text: #111827;
+    --text2: #6b7280;
+    --text3: #9ca3af;
+    --border: rgba(0,0,0,0.10);
+    --border2: rgba(0,0,0,0.18);
+    --radius: 8px;
+    --radius-lg: 12px;
+    --green: #1D9E75;
+    --blue: #378ADD;
+    --amber: #EF9F27;
+    --red: #E24B4A;
+    --purple: #7F77DD;
+    --navy: #1B3A5C;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #18181b;
+      --bg2: #27272a;
+      --bg3: #1f1f22;
+      --text: #f4f4f5;
+      --text2: #a1a1aa;
+      --text3: #71717a;
+      --border: rgba(255,255,255,0.10);
+      --border2: rgba(255,255,255,0.18);
+    }
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: var(--bg3);
+    color: var(--text);
+    min-height: 100vh;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  .topbar {
+    background: var(--navy);
+    color: #fff;
+    padding: 0 2rem;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .topbar-title { font-size: 16px; font-weight: 500; display: flex; align-items: center; gap: 8px; }
+  .topbar-sub { font-size: 12px; color: rgba(255,255,255,0.55); }
+  .badge-live { background: var(--green); color: #fff; font-size: 10px; padding: 2px 8px; border-radius: 20px; font-weight: 500; }
+
+  .container { max-width: 1280px; margin: 0 auto; padding: 1.5rem 1.5rem; }
+
+  .layout { display: grid; grid-template-columns: 260px minmax(0,1fr); gap: 1.5rem; align-items: start; }
+
+  .card {
+    background: var(--bg);
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 1rem 1.25rem;
+  }
+
+  .panel-title {
+    font-size: 11px; font-weight: 500; color: var(--text2);
+    text-transform: uppercase; letter-spacing: .06em;
+    margin-bottom: 1rem; padding-bottom: .5rem;
+    border-bottom: 0.5px solid var(--border);
+  }
+
+  .section-label {
+    font-size: 10px; font-weight: 500; color: var(--text3);
+    text-transform: uppercase; letter-spacing: .06em;
+    margin: .9rem 0 .45rem;
+    padding-top: .6rem;
+    border-top: 0.5px solid var(--border);
+  }
+  .section-label:first-of-type { margin-top: 0; padding-top: 0; border-top: none; }
+
+  .field { margin-bottom: .7rem; }
+  .field label {
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: 12px; color: var(--text2); margin-bottom: 4px;
+  }
+  .field label span { font-weight: 500; color: var(--text); font-size: 12px; }
+
+  input[type=range] {
+    width: 100%; height: 4px; cursor: pointer;
+    accent-color: var(--blue);
+  }
+
+  .metrics { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 10px; margin-bottom: 1.25rem; }
+  .metric { background: var(--bg2); border-radius: var(--radius); padding: .75rem 1rem; }
+  .metric .mlabel { font-size: 11px; color: var(--text2); margin-bottom: 4px; }
+  .metric .mval { font-size: 20px; font-weight: 500; color: var(--text); }
+  .metric .msub { font-size: 11px; color: var(--text3); margin-top: 2px; }
+  .metric.success .mval { color: var(--green); }
+  .metric.warning .mval { color: #BA7517; }
+  .metric.danger .mval { color: var(--red); }
+
+  .tabs {
+    display: flex; gap: 3px; margin-bottom: 1rem;
+    background: var(--bg2); border-radius: var(--radius);
+    padding: 3px;
+  }
+  .tab {
+    flex: 1; padding: 6px 8px; font-size: 12px; font-weight: 500;
+    border: none; background: none; color: var(--text2);
+    border-radius: 6px; cursor: pointer; transition: all .15s;
+  }
+  .tab.active {
+    background: var(--bg);
+    color: var(--text);
+    border: 0.5px solid var(--border);
+  }
+  .tab:hover:not(.active) { color: var(--text); }
+
+  .legend { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 8px; font-size: 11px; color: var(--text2); }
+  .legend span { display: flex; align-items: center; gap: 4px; }
+  .legend i { width: 10px; height: 3px; border-radius: 2px; display: inline-block; }
+
+  .strategy-grid { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 10px; margin-bottom: 1rem; }
+  .strat-card {
+    border: 0.5px solid var(--border2); border-radius: var(--radius);
+    padding: .75rem; background: var(--bg);
+  }
+  .strat-card.best { border: 2px solid var(--green); }
+  .strat-badge {
+    display: inline-block; font-size: 10px; padding: 2px 8px;
+    border-radius: var(--radius); background: #e1f5ee; color: #0f6e56;
+    margin-bottom: 6px; font-weight: 500;
+  }
+  .strat-name { font-size: 13px; font-weight: 500; color: var(--text); margin-bottom: 4px; }
+  .strat-stat { font-size: 11px; color: var(--text2); margin-bottom: 3px; }
+  .strat-stat b { color: var(--text); }
+
+  .chart-wrap { position: relative; width: 100%; }
+
+  .compare-toggle { display: flex; align-items: center; gap: 8px; margin-bottom: .75rem; font-size: 12px; color: var(--text2); }
+  .toggle-wrap { position: relative; width: 36px; height: 20px; flex-shrink: 0; }
+  .toggle-wrap input { opacity: 0; width: 0; height: 0; position: absolute; }
+  .slider-track {
+    position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+    background: var(--border2); border-radius: 10px; cursor: pointer; transition: background .2s;
+  }
+  .toggle-wrap input:checked + .slider-track { background: var(--green); }
+  .slider-track::before {
+    content: ''; position: absolute; height: 14px; width: 14px;
+    left: 3px; bottom: 3px; background: white; border-radius: 50%; transition: transform .2s;
+  }
+  .toggle-wrap input:checked + .slider-track::before { transform: translateX(16px); }
+
+  .age-badges { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: .75rem; }
+  .age-badge {
+    padding: 4px 10px; font-size: 11px; border-radius: 20px;
+    border: 0.5px solid var(--border2); cursor: pointer;
+    color: var(--text2); background: var(--bg); transition: all .15s;
+  }
+  .age-badge.active { background: var(--navy); color: white; border-color: var(--navy); }
+
+  .rec-box {
+    background: var(--bg2);
+    border-left: 3px solid var(--green);
+    border-radius: 0 var(--radius) var(--radius) 0;
+    padding: .85rem 1rem;
+    font-size: 12px; color: var(--text2); line-height: 1.7;
+    margin-top: 1rem;
+  }
+  .rec-box b { color: var(--text); }
+
+  .mc-stats { display: flex; gap: 1.5rem; margin-top: .75rem; font-size: 12px; color: var(--text2); }
+
+  .age-picker-wrap { margin-top: .75rem; }
+  .age-picker-label { font-size: 11px; color: var(--text2); margin-bottom: 6px; }
+
+  @media (max-width: 900px) {
+    .layout { grid-template-columns: 1fr; }
+    .metrics { grid-template-columns: repeat(2, 1fr); }
+    .strategy-grid { grid-template-columns: 1fr; }
+    .tabs .tab { font-size: 11px; padding: 5px 4px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-title">
+    <i class="ti ti-chart-line" aria-hidden="true"></i>
+    Retirement Planning Model
+    <span class="badge-live">Interactive</span>
+  </div>
+  <div class="topbar-sub">AI & Finance 503 — Task 2</div>
+</div>
+
+<div class="container">
+  <div class="layout">
+
+    <!-- LEFT SIDEBAR -->
+    <div>
+      <div class="card">
+        <div class="panel-title">Profile & assumptions</div>
+
+        <div class="section-label">Age</div>
+        <div class="field">
+          <label>Current age <span id="lbl-age">25</span></label>
+          <input type="range" id="sl-age" min="18" max="55" value="25" step="1">
+        </div>
+        <div class="field">
+          <label>Retirement age <span id="lbl-ret">65</span></label>
+          <input type="range" id="sl-ret" min="55" max="75" value="65" step="1">
+        </div>
+
+        <div class="section-label">Income & savings</div>
+        <div class="field">
+          <label>Annual salary ($) <span id="lbl-sal">90,000</span></label>
+          <input type="range" id="sl-sal" min="30000" max="300000" value="90000" step="5000">
+        </div>
+        <div class="field">
+          <label>Contribution rate <span id="lbl-contrib">15%</span></label>
+          <input type="range" id="sl-contrib" min="1" max="30" value="15" step="1">
+        </div>
+        <div class="field">
+          <label>Employer match <span id="lbl-match">4%</span></label>
+          <input type="range" id="sl-match" min="0" max="10" value="4" step="1">
+        </div>
+        <div class="field">
+          <label>Current savings ($) <span id="lbl-savings">10,000</span></label>
+          <input type="range" id="sl-savings" min="0" max="500000" value="10000" step="5000">
+        </div>
+
+        <div class="section-label">Returns & macro</div>
+        <div class="field">
+          <label>Pre-retirement return <span id="lbl-preR">7.0%</span></label>
+          <input type="range" id="sl-preR" min="2" max="12" value="7" step="0.5">
+        </div>
+        <div class="field">
+          <label>Post-retirement return <span id="lbl-postR">5.0%</span></label>
+          <input type="range" id="sl-postR" min="1" max="9" value="5" step="0.5">
+        </div>
+        <div class="field">
+          <label>Inflation rate <span id="lbl-inf">3.5%</span></label>
+          <input type="range" id="sl-inf" min="1" max="8" value="3.5" step="0.5">
+        </div>
+
+        <div class="section-label">Retirement spending</div>
+        <div class="field">
+          <label>Monthly spending ($) <span id="lbl-spend">5,000</span></label>
+          <input type="range" id="sl-spend" min="1000" max="15000" value="5000" step="500">
+        </div>
+        <div class="field">
+          <label>Social Security ($/mo) <span id="lbl-ss">2,800</span></label>
+          <input type="range" id="sl-ss" min="0" max="5000" value="2800" step="100">
+        </div>
+      </div>
+
+      <!-- Compare toggle -->
+      <div class="card" style="margin-top:1rem">
+        <div class="panel-title">Age comparison</div>
+        <div class="compare-toggle">
+          <label class="toggle-wrap">
+            <input type="checkbox" id="toggle-compare">
+            <span class="slider-track"></span>
+          </label>
+          Compare two starting ages
+        </div>
+        <div id="age-picker" style="display:none">
+          <div class="age-picker-label">Second starting age:</div>
+          <div class="age-badges">
+            <div class="age-badge active" data-age="20">20</div>
+            <div class="age-badge" data-age="25">25</div>
+            <div class="age-badge" data-age="30">30</div>
+            <div class="age-badge" data-age="35">35</div>
+            <div class="age-badge" data-age="40">40</div>
+            <div class="age-badge" data-age="45">45</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT MAIN CONTENT -->
+    <div>
+      <!-- Metric cards -->
+      <div class="metrics" id="metrics-row"></div>
+
+      <!-- Tabs -->
+      <div class="tabs">
+        <button class="tab active" data-tab="accum"><i class="ti ti-trending-up" aria-hidden="true"></i> Accumulation</button>
+        <button class="tab" data-tab="decum"><i class="ti ti-cash" aria-hidden="true"></i> Withdrawal</button>
+        <button class="tab" data-tab="monte"><i class="ti ti-chart-dots" aria-hidden="true"></i> Monte Carlo</button>
+        <button class="tab" data-tab="stress"><i class="ti ti-storm" aria-hidden="true"></i> Stress test</button>
+      </div>
+
+      <!-- Tab: Accumulation -->
+      <div id="tab-accum" class="card">
+        <div class="legend" id="leg-accum"></div>
+        <div class="chart-wrap" style="height:290px">
+          <canvas id="ch-accum" role="img" aria-label="Portfolio accumulation over time by account type (401k, Roth, Taxable)"></canvas>
+        </div>
+      </div>
+
+      <!-- Tab: Decumulation -->
+      <div id="tab-decum" class="card" style="display:none">
+        <div class="strategy-grid" id="strat-cards"></div>
+        <div class="legend" id="leg-decum"></div>
+        <div class="chart-wrap" style="height:260px">
+          <canvas id="ch-decum" role="img" aria-label="Portfolio balance under three withdrawal strategies over retirement"></canvas>
+        </div>
+      </div>
+
+      <!-- Tab: Monte Carlo -->
+      <div id="tab-monte" class="card" style="display:none">
+        <div class="legend">
+          <span><i style="background:#378ADD;height:3px"></i>Median path</span>
+          <span><i style="background:#B5D4F4"></i>25th–75th percentile</span>
+          <span><i style="background:#E6F1FB"></i>10th–90th percentile</span>
+          <span><i style="background:#E24B4A;height:1px;width:14px"></i>10th pct floor</span>
+        </div>
+        <div class="chart-wrap" style="height:280px">
+          <canvas id="ch-monte" role="img" aria-label="Monte Carlo simulation showing range of retirement portfolio outcomes across 400 simulated paths"></canvas>
+        </div>
+        <div class="mc-stats" id="mc-stats"></div>
+      </div>
+
+      <!-- Tab: Stress test -->
+      <div id="tab-stress" class="card" style="display:none">
+        <div class="legend">
+          <span><i style="background:#1D9E75"></i>Base case</span>
+          <span><i style="background:#E24B4A"></i>Inflation shock (6.5%)</span>
+          <span><i style="background:#EF9F27"></i>Early crash (yr 1–3, −30%)</span>
+          <span><i style="background:#7F77DD"></i>Longevity to 100</span>
+        </div>
+        <div class="chart-wrap" style="height:280px">
+          <canvas id="ch-stress" role="img" aria-label="Stress test scenarios showing portfolio under inflation shock, early market crash, and extended longevity"></canvas>
+        </div>
+      </div>
+
+      <!-- Recommendation -->
+      <div class="rec-box" id="rec-box"></div>
+    </div>
+
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+const $ = id => document.getElementById(id);
+const fmtK = n => {
+  if(n >= 1e6) return '$' + (Math.round(n/1e5)/10).toFixed(1) + 'M';
+  return '$' + Math.round(n/1000) + 'K';
+};
+const fmt = n => (n < 0 ? '-$' : '$') + Math.abs(Math.round(n)).toLocaleString();
+
+let charts = {};
+let compareAge = 20;
+let compareEnabled = false;
+
+function destroyChart(id){ if(charts[id]){ charts[id].destroy(); delete charts[id]; } }
+
+function getInputs(){
+  return {
+    age:    +$('sl-age').value,
+    ret:    +$('sl-ret').value,
+    sal:    +$('sl-sal').value,
+    contrib:+$('sl-contrib').value / 100,
+    match:  +$('sl-match').value / 100,
+    savings:+$('sl-savings').value,
+    preR:   +$('sl-preR').value / 100,
+    postR:  +$('sl-postR').value / 100,
+    inf:    +$('sl-inf').value / 100,
+    spend:  +$('sl-spend').value,
+    ss:     +$('sl-ss').value
+  };
+}
+
+function updateLabels(p){
+  $('lbl-age').textContent    = p.age;
+  $('lbl-ret').textContent    = p.ret;
+  $('lbl-sal').textContent    = Math.round(p.sal).toLocaleString();
+  $('lbl-contrib').textContent= Math.round(p.contrib*100) + '%';
+  $('lbl-match').textContent  = Math.round(p.match*100) + '%';
+  $('lbl-savings').textContent= Math.round(p.savings).toLocaleString();
+  $('lbl-preR').textContent   = (p.preR*100).toFixed(1) + '%';
+  $('lbl-postR').textContent  = (p.postR*100).toFixed(1) + '%';
+  $('lbl-inf').textContent    = (p.inf*100).toFixed(1) + '%';
+  $('lbl-spend').textContent  = Math.round(p.spend).toLocaleString();
+  $('lbl-ss').textContent     = Math.round(p.ss).toLocaleString();
+}
+
+function projectAccum(p, startAge){
+  const years = p.ret - startAge;
+  let a401k  = startAge === p.age ? p.savings * 0.60 : 0;
+  let aRoth  = startAge === p.age ? p.savings * 0.25 : 0;
+  let aTax   = startAge === p.age ? p.savings * 0.15 : 0;
+  let salary = p.sal;
+  const rows = [];
+  for(let y = 0; y < years; y++){
+    const c401k  = Math.min(salary * p.contrib * 0.70, 23500);
+    const cRoth  = Math.min(salary * p.contrib * 0.30, 7000);
+    const cTax   = Math.max(0, salary * p.contrib - c401k - cRoth);
+    const ematch = Math.min(salary * p.match, Math.max(0, 23500 - c401k));
+    a401k = a401k * (1 + p.preR) + c401k + ematch;
+    aRoth = aRoth * (1 + p.preR) + cRoth;
+    aTax  = aTax  * (1 + p.preR) + cTax;
+    salary *= 1.03;
+    rows.push({ age: startAge + y + 1, t401k: a401k, roth: aRoth, tax: aTax, total: a401k + aRoth + aTax });
+  }
+  return rows;
+}
+
+function projectDecum(p, finalBal, strategy){
+  const annSS   = p.ss * 12;
+  const annSpendBase = p.spend * 12;
+  const endAge  = 95;
+  let bal = finalBal;
+  let spending = annSpendBase;
+  const rows = [{ age: p.ret, bal }];
+  const maxYrs = endAge - p.ret;
+
+  for(let y = 0; y < maxYrs; y++){
+    const age = p.ret + y + 1;
+    const inflAdj    = annSpendBase * Math.pow(1 + p.inf, y + 1);
+    const healthcare = 500 * 12 * Math.pow(1.05, Math.max(0, age - 75));
+    let spend;
+
+    if(strategy === 'four'){
+      spend = inflAdj + healthcare;
+    } else if(strategy === 'guardrail'){
+      const ratio = finalBal > 0 ? bal / finalBal : 0;
+      if(ratio < 0.75) spending = Math.max(annSpendBase * 0.80, spending * 0.95);
+      else if(ratio > 1.05) spending = Math.min(annSpendBase * 1.20, spending * 1.02);
+      spend = spending * Math.pow(1 + p.inf, y + 1) + healthcare;
+    } else {
+      const rmdFactor = Math.max(1, 27.4 - y);
+      const rmdW = bal / rmdFactor;
+      spend = Math.max(rmdW * 0.5, inflAdj * 0.8) + healthcare;
+    }
+
+    const netW = Math.max(0, spend - annSS);
+    bal = bal * (1 + p.postR) - netW;
+    if(bal < 0) bal = 0;
+    rows.push({ age, bal, spend });
+    if(bal === 0 && rows.length > 2 && rows[rows.length - 2].bal === 0) break;
+  }
+  return rows;
+}
+
+function runMonteCarlo(p, finalBal, n){
+  const annSS   = p.ss * 12;
+  const annSpend= p.spend * 12;
+  const maxYrs  = 95 - p.ret;
+  const paths   = [];
+
+  for(let i = 0; i < n; i++){
+    let bal = finalBal;
+    const path = [bal];
+    for(let y = 0; y < maxYrs; y++){
+      const z   = Math.sqrt(-2 * Math.log(Math.random())) * Math.cos(2 * Math.PI * Math.random());
+      const ret = p.postR + 0.12 * z;
+      const age = p.ret + y;
+      const spend = annSpend * Math.pow(1 + p.inf, y) + 500 * 12 * Math.pow(1.05, Math.max(0, age - 75));
+      bal = Math.max(0, bal * (1 + ret) - Math.max(0, spend - annSS));
+      path.push(bal);
+    }
+    paths.push(path);
+  }
+
+  const ages = Array.from({ length: maxYrs + 1 }, (_, i) => p.ret + i);
+  const pcts = ages.map((_, yi) => {
+    const vals = paths.map(p => p[yi]).sort((a, b) => a - b);
+    return {
+      p10: vals[Math.floor(n * 0.10)],
+      p25: vals[Math.floor(n * 0.25)],
+      p50: vals[Math.floor(n * 0.50)],
+      p75: vals[Math.floor(n * 0.75)],
+      p90: vals[Math.floor(n * 0.90)]
+    };
+  });
+
+  const prob90 = paths.filter(p => p[Math.min(90 - p.ret, p.length - 1)] > 0).length / n;
+  const prob95 = paths.filter(p => p[p.length - 1] > 0).length / n;
+  return { ages, pcts, prob90, prob95 };
+}
+
+function render(){
+  const p = getInputs();
+  updateLabels(p);
+  if(p.ret <= p.age) return;
+
+  const accum   = projectAccum(p, p.age);
+  const finalBal= accum.length ? accum[accum.length - 1].total : 0;
+  const annNet  = Math.max(1, p.spend * 12 - p.ss * 12);
+  const yearsInc= Math.round(finalBal / annNet);
+  const onTrack = yearsInc > 30;
+
+  const four   = projectDecum(p, finalBal, 'four');
+  const guard  = projectDecum(p, finalBal, 'guardrail');
+  const dynRmd = projectDecum(p, finalBal, 'dynamic');
+  const dep4   = four.find(r => r.bal === 0)?.age || 95;
+  const depG   = guard.find(r => r.bal === 0)?.age || 95;
+  const depD   = dynRmd.find(r => r.bal === 0)?.age || 95;
+
+  // Metrics
+  const metricClass = (v, good, warn) => v >= good ? 'success' : v >= warn ? 'warning' : 'danger';
+  $('metrics-row').innerHTML = `
+    <div class="metric ${metricClass(finalBal,500000,200000)}">
+      <div class="mlabel">Nest egg at retirement</div>
+      <div class="mval">${fmtK(finalBal)}</div>
+      <div class="msub">age ${p.ret}</div>
+    </div>
+    <div class="metric ${metricClass(yearsInc,30,20)}">
+      <div class="mlabel">Years of income</div>
+      <div class="mval">${yearsInc}y</div>
+      <div class="msub">at target spending</div>
+    </div>
+    <div class="metric ${dep4>=90?'success':dep4>=80?'warning':'danger'}">
+      <div class="mlabel">4% rule depletes at</div>
+      <div class="mval">${dep4 >= 95 ? 'Never' : 'Age ' + dep4}</div>
+      <div class="msub">portfolio exhausted</div>
+    </div>
+    <div class="metric">
+      <div class="mlabel">Accumulation years</div>
+      <div class="mval">${p.ret - p.age}y</div>
+      <div class="msub">age ${p.age} → ${p.ret}</div>
+    </div>`;
+
+  // ── Accumulation chart ────────────────────────────────────────────────
+  if(compareEnabled){
+    const accum2 = projectAccum({ ...p, age: compareAge }, compareAge);
+    const allAges = [...new Set([...accum.map(r => r.age), ...accum2.map(r => r.age)])].sort((a,b) => a - b);
+    const getVal = (arr, age) => { const r = arr.find(x => x.age === age); return r ? r.total : null; };
+    $('leg-accum').innerHTML = `
+      <span><i style="background:#378ADD;height:2px;width:16px"></i>Start age ${p.age}</span>
+      <span><i style="background:#E24B4A;height:2px;width:16px"></i>Start age ${compareAge}</span>`;
+    destroyChart('accum');
+    charts.accum = new Chart($('ch-accum'), {
+      type: 'line',
+      data: { labels: allAges, datasets: [
+        { label: 'Start '+p.age, data: allAges.map(a => getVal(accum,a)), borderColor:'#378ADD', backgroundColor:'rgba(55,138,221,0.07)', fill:true, tension:.4, pointRadius:0, borderWidth:2.5 },
+        { label: 'Start '+compareAge, data: allAges.map(a => getVal(accum2,a)), borderColor:'#E24B4A', backgroundColor:'rgba(226,75,74,0.07)', fill:true, tension:.4, pointRadius:0, borderWidth:2.5, borderDash:[6,3] }
+      ]},
+      options: { responsive:true, maintainAspectRatio:false, plugins:{ legend:{display:false} }, scales:{ x:{ ticks:{ maxTicksLimit:10, color:'#888' }, grid:{color:'rgba(128,128,128,0.08)'} }, y:{ ticks:{ callback: v => fmtK(v), color:'#888' }, grid:{color:'rgba(128,128,128,0.08)'} } } }
+    });
+  } else {
+    $('leg-accum').innerHTML = `
+      <span><i style="background:#378ADD"></i>401k / IRA</span>
+      <span><i style="background:#1D9E75"></i>Roth IRA</span>
+      <span><i style="background:#EF9F27"></i>Taxable brokerage</span>`;
+    destroyChart('accum');
+    charts.accum = new Chart($('ch-accum'), {
+      type: 'line',
+      data: { labels: accum.map(r => r.age), datasets: [
+        { label:'401k', data:accum.map(r=>r.t401k), borderColor:'#378ADD', backgroundColor:'rgba(55,138,221,0.08)', fill:true, tension:.4, pointRadius:0, borderWidth:2 },
+        { label:'Roth', data:accum.map(r=>r.roth),  borderColor:'#1D9E75', backgroundColor:'rgba(29,158,117,0.08)', fill:true, tension:.4, pointRadius:0, borderWidth:2 },
+        { label:'Taxable', data:accum.map(r=>r.tax), borderColor:'#EF9F27', backgroundColor:'rgba(239,159,39,0.08)', fill:true, tension:.4, pointRadius:0, borderWidth:2 }
+      ]},
+      options: { responsive:true, maintainAspectRatio:false, plugins:{ legend:{display:false} }, scales:{ x:{ ticks:{ maxTicksLimit:10, color:'#888' }, grid:{color:'rgba(128,128,128,0.08)'} }, y:{ ticks:{ callback: v => fmtK(v), color:'#888' }, grid:{color:'rgba(128,128,128,0.08)'} } } }
+    });
+  }
+
+  // ── Strategy cards ────────────────────────────────────────────────────
+  const strategies = [
+    { id:'four', name:'4% rule', desc:'Fixed inflation-adjusted withdrawals at 4% of initial balance each year', dep:dep4, rows:four },
+    { id:'guard', name:'Guardrail method', desc:'Adjusts spending ±5% based on portfolio drift vs. baseline — reduces sequence risk', dep:depG, rows:guard },
+    { id:'dyn', name:'Dynamic / RMD-based', desc:'Annual spending tied to portfolio balance via IRS Uniform Lifetime RMD table', dep:depD, rows:dynRmd }
+  ];
+  const bestDep = Math.max(dep4, depG, depD);
+  $('strat-cards').innerHTML = strategies.map(s => {
+    const isBest = s.dep === bestDep && s.dep >= depG;
+    const mo1 = s.rows.length > 1 ? Math.round(s.rows[1].spend / 12) : 0;
+    return `<div class="strat-card ${isBest ? 'best' : ''}">
+      ${isBest ? '<span class="strat-badge">Recommended</span><br>' : ''}
+      <div class="strat-name">${s.name}</div>
+      <div class="strat-stat" style="margin-bottom:6px">${s.desc}</div>
+      <div class="strat-stat"><b>Depletes:</b> ${s.dep >= 95 ? 'Never (95+)' : 'Age ' + s.dep}</div>
+      <div class="strat-stat"><b>Year-1 spend:</b> ${fmt(mo1)}/mo</div>
+    </div>`;
+  }).join('');
+
+  // ── Decumulation chart ─────────────────────────────────────────────────
+  const decumAges = [...new Set([...four.map(r=>r.age), ...guard.map(r=>r.age), ...dynRmd.map(r=>r.age)])].sort((a,b)=>a-b);
+  const getDecum  = (arr, age) => { const r = arr.find(x => x.age === age); return r ? r.bal : null; };
+  $('leg-decum').innerHTML = `
+    <span><i style="background:#378ADD"></i>4% rule</span>
+    <span><i style="background:#1D9E75"></i>Guardrail</span>
+    <span><i style="background:#EF9F27"></i>Dynamic / RMD</span>`;
+  destroyChart('decum');
+  charts.decum = new Chart($('ch-decum'), {
+    type: 'line',
+    data: { labels: decumAges, datasets: [
+      { label:'4% rule', data:decumAges.map(a=>getDecum(four,a)),   borderColor:'#378ADD', tension:.4, pointRadius:0, borderWidth:2.5 },
+      { label:'Guardrail', data:decumAges.map(a=>getDecum(guard,a)), borderColor:'#1D9E75', tension:.4, pointRadius:0, borderWidth:2.5 },
+      { label:'Dynamic', data:decumAges.map(a=>getDecum(dynRmd,a)), borderColor:'#EF9F27', tension:.4, pointRadius:0, borderWidth:2.5, borderDash:[5,3] }
+    ]},
+    options: { responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{ x:{ticks:{color:'#888'}, grid:{color:'rgba(128,128,128,0.08)'}}, y:{ticks:{callback:v=>fmtK(v),color:'#888'}, grid:{color:'rgba(128,128,128,0.08)'}} } }
+  });
+
+  // ── Monte Carlo ────────────────────────────────────────────────────────
+  const mc = runMonteCarlo(p, finalBal, 400);
+  destroyChart('monte');
+  charts.monte = new Chart($('ch-monte'), {
+    type: 'line',
+    data: { labels: mc.ages, datasets: [
+      { label:'90th pct', data:mc.pcts.map(x=>x.p90), borderColor:'transparent', backgroundColor:'rgba(230,241,251,0.75)', fill:'+1', tension:.4, pointRadius:0, borderWidth:0 },
+      { label:'75th pct', data:mc.pcts.map(x=>x.p75), borderColor:'transparent', backgroundColor:'rgba(181,212,244,0.75)', fill:'+1', tension:.4, pointRadius:0, borderWidth:0 },
+      { label:'Median',   data:mc.pcts.map(x=>x.p50), borderColor:'#378ADD', backgroundColor:'rgba(55,138,221,0.12)', fill:'+1', tension:.4, pointRadius:0, borderWidth:2.5 },
+      { label:'25th pct', data:mc.pcts.map(x=>x.p25), borderColor:'transparent', backgroundColor:'rgba(181,212,244,0.6)', fill:false, tension:.4, pointRadius:0, borderWidth:0 },
+      { label:'10th pct', data:mc.pcts.map(x=>x.p10), borderColor:'rgba(226,75,74,0.5)', backgroundColor:'rgba(226,75,74,0.04)', fill:false, tension:.4, pointRadius:0, borderWidth:1.5, borderDash:[4,3] }
+    ]},
+    options: { responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{ x:{ticks:{color:'#888'}, grid:{color:'rgba(128,128,128,0.08)'}}, y:{ticks:{callback:v=>fmtK(v),color:'#888'}, grid:{color:'rgba(128,128,128,0.08)'}} } }
+  });
+  const col90 = mc.prob90 > 0.8 ? '#1D9E75' : mc.prob90 > 0.6 ? '#BA7517' : '#E24B4A';
+  const col95 = mc.prob95 > 0.7 ? '#1D9E75' : mc.prob95 > 0.5 ? '#BA7517' : '#E24B4A';
+  $('mc-stats').innerHTML = `
+    <span>Probability of success to age 90: <b style="color:${col90}">${Math.round(mc.prob90*100)}%</b></span>
+    <span>Probability of success to age 95: <b style="color:${col95}">${Math.round(mc.prob95*100)}%</b></span>`;
+
+  // ── Stress test ────────────────────────────────────────────────────────
+  const stressAges = Array.from({ length: 100 - p.ret + 1 }, (_, i) => p.ret + i);
+  function projectStress(retFn, infFn){
+    let bal = finalBal;
+    return stressAges.map((age, y) => {
+      if(y === 0) return bal;
+      const ret  = retFn(y);
+      const inf  = infFn(y);
+      const sp   = p.spend*12*Math.pow(1+inf,y) + 500*12*Math.pow(1.05,Math.max(0,age-75));
+      bal = Math.max(0, bal*(1+ret) - Math.max(0, sp - p.ss*12));
+      return bal;
+    });
+  }
+  const sBase  = projectStress(() => p.postR,                     () => p.inf);
+  const sInfl  = projectStress(() => p.postR - 0.01,              () => 0.065);
+  const sCrash = projectStress(y => y <= 3 ? -0.12 : p.postR,    () => p.inf);
+  const sLong  = projectStress(() => p.postR - 0.005,             () => p.inf + 0.005);
+
+  destroyChart('stress');
+  charts.stress = new Chart($('ch-stress'), {
+    type: 'line',
+    data: { labels: stressAges, datasets: [
+      { label:'Base',          data:sBase,  borderColor:'#1D9E75', tension:.4, pointRadius:0, borderWidth:2.5 },
+      { label:'Inflation shock', data:sInfl, borderColor:'#E24B4A', tension:.4, pointRadius:0, borderWidth:2, borderDash:[5,3] },
+      { label:'Early crash',   data:sCrash, borderColor:'#EF9F27', tension:.4, pointRadius:0, borderWidth:2, borderDash:[3,2] },
+      { label:'Longevity',     data:sLong,  borderColor:'#7F77DD', tension:.4, pointRadius:0, borderWidth:2, borderDash:[8,4] }
+    ]},
+    options: { responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{ x:{ticks:{color:'#888'}, grid:{color:'rgba(128,128,128,0.08)'}}, y:{ticks:{callback:v=>fmtK(v),color:'#888'}, grid:{color:'rgba(128,128,128,0.08)'}} } }
+  });
+
+  // ── Recommendation ─────────────────────────────────────────────────────
+  const totalContrib = (p.ret - p.age) * p.sal * p.contrib;
+  const gains = finalBal - p.savings - totalContrib;
+  const sustainableMonthly = fmt(Math.round(finalBal / 30 / 12));
+  $('rec-box').innerHTML = onTrack
+    ? `<b>Plan is on track.</b> Starting at age ${p.age} with a ${Math.round(p.contrib*100)}% contribution rate, you reach ${fmtK(finalBal)} by age ${p.ret} — providing approximately ${yearsInc} years of sustainable income.${gains > 0 ? ` Investment growth contributes ${fmtK(gains)} of that total.` : ''} The <b>Guardrail strategy</b> is recommended: it extends portfolio life while adapting to market conditions, reducing sequence-of-returns risk versus the rigid 4% rule. Consider <b>Roth conversions</b> in lower-income years before retirement to reduce future RMD tax drag.`
+    : `<b>Plan needs attention.</b> At age ${p.age} with current settings, the projected ${fmtK(finalBal)} covers only ${yearsInc} years. Consider: (1) <b>increasing contributions</b> to ${Math.min(30, Math.round(p.contrib*100)+5)}%+, (2) <b>delaying retirement</b> to age ${p.ret + 3}, (3) <b>reducing monthly spending</b> to ${sustainableMonthly} (30-year sustainable rate), or (4) maximizing <b>Roth conversions</b> now to reduce future tax burden on withdrawals.`;
+}
+
+// Tab switching
+document.querySelectorAll('.tab').forEach(t => {
+  t.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
+    t.classList.add('active');
+    ['accum','decum','monte','stress'].forEach(id => $('tab-'+id).style.display = 'none');
+    $('tab-' + t.dataset.tab).style.display = 'block';
+  });
+});
+
+// Compare toggle
+$('toggle-compare').addEventListener('change', e => {
+  compareEnabled = e.target.checked;
+  $('age-picker').style.display = compareEnabled ? 'block' : 'none';
+  render();
+});
+
+// Age badges
+document.querySelectorAll('.age-badge').forEach(b => {
+  b.addEventListener('click', () => {
+    document.querySelectorAll('.age-badge').forEach(x => x.classList.remove('active'));
+    b.classList.add('active');
+    compareAge = +b.dataset.age;
+    render();
+  });
+});
+
+// Sliders
+['sl-age','sl-ret','sl-sal','sl-contrib','sl-match','sl-savings','sl-preR','sl-postR','sl-inf','sl-spend','sl-ss']
+  .forEach(id => $(id).addEventListener('input', render));
+
+render();
+</script>
+</body>
+</html>
